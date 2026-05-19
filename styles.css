@@ -1,0 +1,124 @@
+/* ───────────────────────────────────────────────────────────
+   Design tokens — modern clean, white, mono numbers
+   US convention: green = up, red = down
+   ─────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Surface — warm-leaning neutral whites */
+  --bg:           oklch(99.2% 0.002 95);
+  --surface:      #ffffff;
+  --surface-2:   oklch(97.5% 0.003 95);
+  --surface-3:   oklch(95.5% 0.004 95);
+
+  /* Ink */
+  --ink:          oklch(20% 0.01 260);
+  --ink-2:        oklch(40% 0.01 260);
+  --ink-3:        oklch(58% 0.01 260);
+  --ink-4:        oklch(72% 0.008 260);
+
+  /* Hairline */
+  --line:         oklch(92% 0.004 260);
+  --line-2:       oklch(88% 0.005 260);
+
+  /* Semantic — US market */
+  --up:           #16a34a;
+  --up-soft:      #ecfdf5;
+  --up-ink:       #047857;
+  --down:         #dc2626;
+  --down-soft:    #fef2f2;
+  --down-ink:     #b91c1c;
+
+  /* Accent (very limited) */
+  --accent:       oklch(55% 0.13 255);
+
+  /* Type */
+  --font-ui:      'Manrope', ui-sans-serif, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Radii */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.mono { font-family: var(--font-mono); font-feature-settings: 'tnum' 1, 'zero' 1; }
+.up   { color: var(--up); }
+.down { color: var(--down); }
+
+/* Scrollbar inside artboards — subtle */
+.scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 6px; }
+.scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Tab bar scroller — hide scrollbar but keep scrollable */
+.tabbar-scroll::-webkit-scrollbar { display: none; }
+
+/* ───────────────────────────────────────────────────────────
+   Phone shell — responsive
+   On mobile: fills viewport, locks top/bottom (no page scroll).
+   On desktop: 390×812 centered with shadow & rounded corners.
+   ─────────────────────────────────────────────────────────── */
+html, body {
+  height: 100%;
+  overscroll-behavior: none;  /* prevent rubber-band on PWA */
+}
+.gca-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid; place-items: center;
+  padding: 32px 16px;
+  background: oklch(96% 0.003 95);
+}
+.gca-shell-inner {
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.04);
+  border-radius: 36px;
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+.gca-phone {
+  width: 390px;
+  height: 812px;
+  overflow: hidden;
+  padding-top: 12px;
+}
+
+/* MOBILE — fill viewport, no chrome */
+@media (max-width: 520px) {
+  .gca-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 0;
+    background: var(--bg);
+    place-items: stretch;
+    display: block;
+  }
+  .gca-shell-inner {
+    box-shadow: none;
+    border-radius: 0;
+    border: 0;
+    height: 100vh;
+    height: 100dvh;
+  }
+  .gca-phone {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    /* Honor iPhone safe areas (notch & home indicator) */
+    padding-top: env(safe-area-inset-top, 12px);
+  }
+}
