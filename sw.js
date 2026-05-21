@@ -1,7 +1,7 @@
 // Service worker — cache-first for app shell, network-first for HTML
 // Bump CACHE_VERSION whenever you ship changes so users get the new build.
 
-const CACHE_VERSION = 'gca-v2';
+const CACHE_VERSION = 'gca-v6';
 const APP_SHELL = [
   './',
   './美股記帳.html',

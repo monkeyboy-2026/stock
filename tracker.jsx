@@ -417,6 +417,12 @@ function PortfolioScreen({
 
       {/* Rows — wrapped in relative container so the FAB can hover over it */}
       <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        {/* Top edge fade — visually separates from fixed summary area above */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 16,
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.10), rgba(0,0,0,0.03) 60%, transparent)',
+          pointerEvents: 'none', zIndex: 2,
+        }} />
         <div className="scroll" style={{ height: '100%', overflowY: 'auto' }}>
           {sorted.length === 0 && (
             <div style={{
@@ -486,6 +492,13 @@ function PortfolioScreen({
           })}
           <div style={{ height: 56 }} />{/* spacer so last row isn't covered by FAB */}
         </div>
+
+        {/* Bottom edge fade — visually separates from fixed tab bar below */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: 18,
+          background: 'linear-gradient(to top, rgba(0,0,0,0.10), rgba(0,0,0,0.03) 60%, transparent)',
+          pointerEvents: 'none', zIndex: 2,
+        }} />
 
         {/* Floating sort FAB */}
         <SortFab mode={sortMode} setMode={setSortMode} open={sortMenuOpen} setOpen={setSortMenuOpen} />
