@@ -1,7 +1,7 @@
 // Service worker — cache-first for app shell, network-first for HTML
 // Bump CACHE_VERSION whenever you ship changes so users get the new build.
 
-const CACHE_VERSION = 'gca-v6';
+const CACHE_VERSION = 'gca-v9';
 const APP_SHELL = [
   './',
   './美股記帳.html',
@@ -54,7 +54,24 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Cache-first for everything else
+  // Network-first for our own JS/JSX/CSS so code changes propagate without
+  // waiting for a SW version bump. Falls back to cache when offline.
+  const isOwnCode = url.origin === location.origin &&
+    /\.(jsx?|css|webmanifest)$/.test(url.pathname);
+  if (isOwnCode) {
+    e.respondWith(
+      fetch(e.request).then((res) => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then((c) => c.put(e.request, copy));
+        }
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Cache-first for everything else (CDN deps, fonts, images)
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached;

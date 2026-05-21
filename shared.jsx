@@ -115,7 +115,8 @@ function TabBar({ tabs, active, onChange = () => {} }) {
   return (
     <div style={{
       borderTop: '1px solid var(--line)', background: 'rgba(255,255,255,0.96)',
-      backdropFilter: 'blur(20px)', padding: '8px 0 22px',
+      backdropFilter: 'blur(20px)',
+      padding: '10px 0 calc(10px + env(safe-area-inset-bottom, 0px))',
       position: 'relative',
     }}>
       <div

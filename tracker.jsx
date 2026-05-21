@@ -100,13 +100,15 @@ function Summary({ style, fmtMoney, s, p, onAddCash }) {
       borderRadius: 'var(--r-lg)',
       border: style === 'light' ? '1px solid var(--line)' : 'none',
     }}>
-      <div style={{ fontSize: 10, opacity: isDark || isAccent ? 0.6 : 1, color: isDark || isAccent ? '#fff' : 'var(--ink-3)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>預估現值</div>
-      <div className="mono" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', marginTop: 2, lineHeight: 1.1 }}>
-        {fmtMoney(s.value)}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ fontSize: 10, opacity: isDark || isAccent ? 0.6 : 1, color: isDark || isAccent ? '#fff' : 'var(--ink-3)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>預估現值</div>
+        <div className="mono" style={{ fontSize: 11, fontWeight: 600, color: upTone(s.todayChg), textAlign: 'right', lineHeight: 1.3, whiteSpace: 'nowrap' }}>
+          <span style={{ opacity: 0.55, color: fg, fontWeight: 400, marginRight: 6 }}>今日</span>
+          {s.todayChg >= 0 ? '▲' : '▼'} {fmtMoney(Math.abs(s.todayChg))} · {window.fmt.pct(s.todayPct)}
+        </div>
       </div>
-      <div className="mono" style={{ fontSize: 12, fontWeight: 600, marginTop: 4, color: upTone(s.todayChg) }}>
-        {s.todayChg >= 0 ? '▲' : '▼'} {fmtMoney(Math.abs(s.todayChg))} · {window.fmt.pct(s.todayPct)}
-        <span style={{ opacity: 0.55, color: fg, fontWeight: 400, marginLeft: 6 }}>今日</span>
+      <div className="mono" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', marginTop: 4, lineHeight: 1.1 }}>
+        {fmtMoney(s.value)}
       </div>
       <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${divider}`, display: 'grid', gap: 6 }}>
         <Row label="原始成本" value={{ text: fmtMoney(s.cost) }} />
@@ -377,11 +379,8 @@ function PortfolioScreen({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
-      <div style={{ padding: '8px 18px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Portfolio</div>
-          <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em', marginTop: 1 }}>持倉一覽</div>
-        </div>
+      <div style={{ padding: '2px 18px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>持倉一覽</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="mono" style={{ fontSize: 10, color: 'var(--ink-4)', fontWeight: 500, whiteSpace: 'nowrap' }}>{p.asOf?.slice(0, 10)}</span>
           <CurrencyToggle value={ccy} onChange={(c) => { setCcy(c); setTweak('ccy', c); }} />
@@ -635,7 +634,7 @@ function ViewTabsRow({ tabs, active, editing, onActivate, onToggleEdit, onRename
 
   return (
     <div style={{
-      marginTop: 18, padding: '0 14px',
+      marginTop: 7, padding: '0 14px',
       display: 'flex', alignItems: 'center', gap: 8,
     }}>
       <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>

@@ -302,7 +302,7 @@ function StockTxFields({
 
       <Field label="券商">
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {['Firstrade', 'IB', 'Charles Schwab', 'TD', '其他'].map((b) => (
+          {['Firstrade', 'IB', 'Charles Schwab', 'TD', '國泰', '其他'].map((b) => (
             <button key={b} onClick={() => setBroker(b)} style={{
               border: '1px solid ' + (broker === b ? 'var(--ink)' : 'var(--line)'),
               background: broker === b ? 'var(--ink)' : 'var(--surface)',
