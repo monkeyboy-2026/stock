@@ -67,6 +67,9 @@ body {
 /* Tab bar scroller — hide scrollbar but keep scrollable */
 .tabbar-scroll::-webkit-scrollbar { display: none; }
 
+/* Spinning indicator for price refresh */
+@keyframes gca-spin { to { transform: rotate(360deg); } }
+
 /* ───────────────────────────────────────────────────────────
    Phone shell — responsive
    On mobile: fills viewport, locks top/bottom (no page scroll).

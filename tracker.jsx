@@ -294,6 +294,7 @@ function PortfolioScreen({
   positions, usdCash, realizedPnL, totalDeposited,
   viewTabs, setViewTabs, activeView, setActiveView,
   onOpenStock, onAddCash,
+  priceStatus, priceUpdated, priceMsg, onRefreshPrices,
 }) {
   const [editingTabs, setEditingTabs] = useState(false);
   const [sortMode, setSortMode] = useState(() => {
@@ -381,8 +382,8 @@ function PortfolioScreen({
       {/* Header */}
       <div style={{ padding: '2px 18px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>持倉一覽</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="mono" style={{ fontSize: 10, color: 'var(--ink-4)', fontWeight: 500, whiteSpace: 'nowrap' }}>{p.asOf?.slice(0, 10)}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <PriceRefreshBtn status={priceStatus} updated={priceUpdated} msg={priceMsg} onClick={onRefreshPrices} />
           <CurrencyToggle value={ccy} onChange={(c) => { setCcy(c); setTweak('ccy', c); }} />
         </div>
       </div>
@@ -588,10 +589,142 @@ function SortFab({ mode, setMode, open, setOpen }) {
 }
 
 // ──────────────────────────────────────────────
-// View tabs row — pills + horizontal scroll + edit mode
-// "全部" (kind='all') is protected: shown as plain pill in edit mode
-// without rename input or delete button.
+// Finnhub API key control (in Tweaks panel)
 // ──────────────────────────────────────────────
+function FinnhubKeyControl() {
+  const [key, setKey] = useState(() => window.PriceAPI?.getKey() || '');
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState(null);  // {ok, error?}
+  const masked = key && key.length > 8 ? key.slice(0, 4) + '…' + key.slice(-4) : key;
+  const [showFull, setShowFull] = useState(false);
+
+  const save = () => {
+    window.PriceAPI?.setKey(key.trim());
+    setResult({ ok: true, saved: true });
+  };
+  const test = async () => {
+    setTesting(true);
+    setResult(null);
+    const r = await window.PriceAPI?.testKey(key.trim());
+    setTesting(false);
+    setResult(r);
+  };
+  const clear = () => {
+    setKey('');
+    window.PriceAPI?.setKey('');
+    setResult(null);
+  };
+
+  return (
+    <div style={{ padding: '4px 0' }}>
+      <input
+        type={showFull ? 'text' : 'password'}
+        value={key}
+        onChange={(e) => { setKey(e.target.value); setResult(null); }}
+        placeholder="貼上 Finnhub API key"
+        style={{
+          width: '100%', height: 32, border: '1px solid rgba(0,0,0,0.12)',
+          borderRadius: 8, padding: '0 8px', outline: 'none',
+          fontFamily: 'var(--font-mono)', fontSize: 11,
+          background: 'rgba(255,255,255,0.6)', color: '#111',
+          boxSizing: 'border-box',
+        }}
+      />
+      <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <button onClick={save} disabled={!key.trim()} style={btnStyle(!!key.trim())}>儲存</button>
+        <button onClick={test} disabled={!key.trim() || testing} style={btnStyle(!!key.trim() && !testing)}>
+          {testing ? '測試中…' : '測試連線'}
+        </button>
+        <button onClick={() => setShowFull(!showFull)} style={btnStyle(true, true)}>
+          {showFull ? '隱藏' : '顯示'}
+        </button>
+        {key && <button onClick={clear} style={btnStyle(true, true)}>清除</button>}
+      </div>
+      {result && (
+        <div style={{
+          marginTop: 6, fontSize: 10, fontWeight: 600,
+          color: result.ok ? '#0a7c3e' : '#b91c1c',
+        }}>
+          {result.saved ? '✓ 已儲存' : (result.ok ? '✓ 連線正常' : '✗ ' + (result.error || '失敗'))}
+        </div>
+      )}
+      <div style={{ marginTop: 6, fontSize: 10, color: 'rgba(0,0,0,0.55)', lineHeight: 1.4 }}>
+        到 <span style={{ textDecoration: 'underline' }}>finnhub.io</span> 免費註冊取得 key（60 次/分鐘）。
+        Key 只存在這支手機，不會上傳。
+      </div>
+    </div>
+  );
+}
+
+function btnStyle(enabled, secondary = false) {
+  return {
+    border: 0, padding: '5px 10px', borderRadius: 6,
+    background: !enabled ? 'rgba(0,0,0,0.06)' : (secondary ? 'rgba(0,0,0,0.06)' : '#111'),
+    color: !enabled ? 'rgba(0,0,0,0.35)' : (secondary ? '#111' : '#fff'),
+    cursor: enabled ? 'pointer' : 'not-allowed',
+    fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700,
+  };
+}
+
+// ──────────────────────────────────────────────
+// Price refresh button (header)
+// ──────────────────────────────────────────────
+function PriceRefreshBtn({ status, updated, msg, onClick }) {
+  const [showMsg, setShowMsg] = useState(false);
+  const fmtAge = () => {
+    if (!updated) return '尚未更新';
+    const age = Math.floor((Date.now() - updated) / 1000);
+    if (age < 60) return age + '秒前';
+    const m = Math.floor(age / 60);
+    if (m < 60) return m + '分前';
+    const h = Math.floor(m / 60);
+    return h + '時前';
+  };
+  const label = status === 'loading' ? '更新中…' : fmtAge();
+  const isErr = status === 'error';
+  const today = new Date().toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }).replace(/\//g, '/');
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => { onClick && onClick(); }}
+        title={msg || '更新即時股價'}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          padding: '4px 8px', border: 0, borderRadius: 999,
+          background: isErr ? 'var(--down-soft)' : 'var(--surface-2)',
+          color: isErr ? 'var(--down-ink)' : 'var(--ink-2)',
+          cursor: status === 'loading' ? 'wait' : 'pointer',
+          fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 600,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          style={{
+            animation: status === 'loading' ? 'gca-spin 0.9s linear infinite' : 'none',
+            transformOrigin: 'center',
+          }}>
+          <path d="M14 8a6 6 0 1 1-2-4.5" />
+          <path d="M14 3v4h-4" />
+        </svg>
+        <span className="mono">{label}</span>
+      </button>
+      {isErr && msg && (
+        <div
+          onClick={() => setShowMsg(!showMsg)}
+          style={{
+            position: 'absolute', top: '110%', right: 0, zIndex: 5,
+            background: 'var(--down-soft)', color: 'var(--down-ink)',
+            border: '1px solid var(--down)', borderRadius: 8,
+            padding: '6px 10px', fontSize: 10, fontWeight: 600,
+            maxWidth: 220, whiteSpace: 'normal', cursor: 'pointer',
+            display: showMsg ? 'block' : 'none',
+          }}
+        >{msg}</div>
+      )}
+    </div>
+  );
+}
 function ViewTabsRow({ tabs, active, editing, onActivate, onToggleEdit, onRename, onDelete, onAdd }) {
   const scrollerRef = React.useRef(null);
   const [edges, setEdges] = useState({ left: false, right: false });
@@ -774,7 +907,39 @@ function Tracker() {
   const [presetMode, setPresetMode] = useState(null);
   const [activeSym, setActiveSym] = useState(null);
 
-  // ── User-added transactions (replayed onto the seed positions) ──
+  // ── Live prices (Finnhub) ──
+  const [livePrices, setLivePrices] = useState(() => window.PriceAPI?.getCachedPrices() || {});
+  const [priceStatus, setPriceStatus] = useState('idle'); // idle | loading | error
+  const [priceUpdated, setPriceUpdated] = useState(() => window.PriceAPI?.getLastUpdate() || 0);
+  const [priceMsg, setPriceMsg] = useState('');
+
+  const refreshPrices = useCallback(async () => {
+    const api = window.PriceAPI;
+    if (!api) return;
+    const key = api.getKey();
+    if (!key) { setPriceMsg('尚未設定 API key（Tweaks → 即時股價）'); return; }
+    setPriceStatus('loading');
+    setPriceMsg('');
+    try {
+      const syms = window.PORTFOLIO.positions.filter((p) => p.shares > 0).map((p) => p.sym);
+      const out = await api.refresh(syms);
+      setLivePrices({ ...out });
+      setPriceUpdated(api.getLastUpdate());
+      setPriceStatus('idle');
+    } catch (e) {
+      setPriceStatus('error');
+      setPriceMsg(e.message || '更新失敗');
+    }
+  }, []);
+
+  // Auto-fetch on mount if cache is stale (>60s)
+  useEffect(() => {
+    const api = window.PriceAPI;
+    if (!api || !api.getKey()) return;
+    if (Date.now() - api.getLastUpdate() > 60_000) {
+      refreshPrices();
+    }
+  }, [refreshPrices]);
   const [userTxs, setUserTxs] = useState(loadUserTxs);
   useEffect(() => {
     try { localStorage.setItem(PORTFOLIO_LS, JSON.stringify({ userTxs })); } catch {}
@@ -798,9 +963,17 @@ function Tracker() {
   // Lift positions & viewTabs to top-level state for cross-screen mutation
   const [tagOverrides, setTagOverrides] = useState(loadTagOverrides);
   const [noteOverrides, setNoteOverrides] = useState(loadNoteOverrides);
+  // Overlay live prices onto seed positions
+  const positionsWithLivePrices = useMemo(() => {
+    return live.positions.map((p) => {
+      const lp = livePrices[p.sym];
+      if (lp) return { ...p, price: lp.price, day: lp.day };
+      return p;
+    });
+  }, [live.positions, livePrices]);
   const positions = useMemo(
-    () => buildLivePositions(live.positions, tagOverrides, noteOverrides),
-    [live.positions, tagOverrides, noteOverrides]
+    () => buildLivePositions(positionsWithLivePrices, tagOverrides, noteOverrides),
+    [positionsWithLivePrices, tagOverrides, noteOverrides]
   );
   const [viewTabs, setViewTabs] = useState(() => loadViewTabs(buildLivePositions(window.PORTFOLIO.positions, loadTagOverrides())));
   const [activeView, setActiveView] = useState(() => {
@@ -926,6 +1099,10 @@ function Tracker() {
         activeView={activeView} setActiveView={setActiveView}
         onOpenStock={goToDetail}
         onAddCash={() => { setEditing(null); setPresetMode('cash'); setScreen('Add'); }}
+        priceStatus={priceStatus}
+        priceUpdated={priceUpdated}
+        priceMsg={priceMsg}
+        onRefreshPrices={refreshPrices}
       />
     );
     if (screen === 'Trades') return <TradesScreen
@@ -988,6 +1165,10 @@ function Tracker() {
             { value: 'tw',      label: '台股（紅漲綠跌）' },
             { value: 'neutral', label: '中性（藍/橘）' },
           ]} onChange={(v) => setTweak('colorRule', v)} />
+        </TweakSection>
+
+        <TweakSection label="即時股價 (Finnhub)">
+          <FinnhubKeyControl />
         </TweakSection>
 
         <TweakSection label="資料">

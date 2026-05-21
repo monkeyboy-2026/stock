@@ -6,6 +6,8 @@
 // ───────────────────────────────────────────────────────────
 
 window.PORTFOLIO = {
+  // Display label for "資料日期" — falls back to today's date at runtime.
+  // The Portfolio screen uses new Date() so it always shows today.
   asOf: '2026-05-18 (Google Sheet 匯入)',
   usdCash: 9366.89,                // 美金庫存 (0518)
   realizedPnL: 1304.60,            // 26/02/26 前已實現獲利
