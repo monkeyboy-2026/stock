@@ -1,10 +1,10 @@
 // Service worker — cache-first for app shell, network-first for HTML
 // Bump CACHE_VERSION whenever you ship changes so users get the new build.
 
-const CACHE_VERSION = 'gca-v13';
+const CACHE_VERSION = 'gca-v16';
 const APP_SHELL = [
   './',
-  './美股記帳.html',
+  './index.html',
   './styles.css',
   './data.js',
   './prices.js',
@@ -50,7 +50,7 @@ self.addEventListener('fetch', (e) => {
         const copy = res.clone();
         caches.open(CACHE_VERSION).then((c) => c.put(e.request, copy));
         return res;
-      }).catch(() => caches.match(e.request).then((c) => c || caches.match('./美股記帳.html')))
+      }).catch(() => caches.match(e.request).then((c) => c || caches.match('./index.html')))
     );
     return;
   }

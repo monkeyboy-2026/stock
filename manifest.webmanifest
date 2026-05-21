@@ -3,7 +3,7 @@
   "short_name": "美股記帳",
   "description": "美股持倉、交易紀錄、損益追蹤 — 純前端、資料留本機",
   "id": "/?source=pwa",
-  "start_url": "美股記帳.html?source=pwa",
+  "start_url": "index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -19,13 +19,13 @@
     {
       "name": "增減個股",
       "short_name": "增減",
-      "url": "美股記帳.html?screen=add",
+      "url": "index.html?screen=add",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "交易紀錄",
       "short_name": "交易",
-      "url": "美股記帳.html?screen=trades",
+      "url": "index.html?screen=trades",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]

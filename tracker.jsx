@@ -103,7 +103,9 @@ function Summary({ style, fmtMoney, s, p, onAddCash }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ fontSize: 10, opacity: isDark || isAccent ? 0.6 : 1, color: isDark || isAccent ? '#fff' : 'var(--ink-3)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>預估現值</div>
         <div className="mono" style={{ fontSize: 11, fontWeight: 600, color: upTone(s.todayChg), textAlign: 'right', lineHeight: 1.3, whiteSpace: 'nowrap' }}>
-          <span style={{ opacity: 0.55, color: fg, fontWeight: 400, marginRight: 6 }}>今日</span>
+          <span style={{ color: '#fff', fontWeight: 500, marginRight: 6 }}>
+            {new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/')}
+          </span>
           {s.todayChg >= 0 ? '▲' : '▼'} {fmtMoney(Math.abs(s.todayChg))} · {window.fmt.pct(s.todayPct)}
         </div>
       </div>
@@ -385,6 +387,16 @@ function PortfolioScreen({
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <PriceRefreshBtn status={priceStatus} updated={priceUpdated} msg={priceMsg} onClick={onRefreshPrices} />
           <CurrencyToggle value={ccy} onChange={(c) => { setCcy(c); setTweak('ccy', c); }} />
+          <button
+            onClick={() => window.postMessage({ type: '__activate_edit_mode' }, '*')}
+            title="設定"
+            style={{
+              width: 28, height: 28, border: 0, borderRadius: 999,
+              background: 'var(--surface-2)', color: 'var(--ink-2)',
+              cursor: 'pointer', display: 'grid', placeItems: 'center',
+              fontSize: 14, lineHeight: 1, padding: 0,
+            }}
+          >⚙</button>
         </div>
       </div>
 
